@@ -1,0 +1,33 @@
+{
+  "name": "ai-coach",
+  "version": "1.0.0",
+  "description": "AI Coach - Intelligent Training Assistant with Garmin Connect integration",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "npm run build:backend && npm run build:frontend",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+    "start:backend": "cd backend && npm run start",
+    "start:frontend": "cd frontend && npm run start",
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "setup": "npm run install:all && npm run setup:env",
+    "setup:env": "cp backend/env.example backend/.env && cp frontend/env.local.example frontend/.env.local"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "keywords": [
+    "ai",
+    "coach",
+    "cycling",
+    "garmin",
+    "mcp",
+    "training",
+    "workouts"
+  ],
+  "author": "AI Coach Team",
+  "license": "MIT"
+}

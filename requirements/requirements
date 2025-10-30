@@ -1,0 +1,121 @@
+You are an expert full-stack engineer designing an MVP for AI Coach — an intelligent training assistant integrated with Garmin Connect via the Garmin API and ChatGPT (MCP).
+
+🎯 Goal
+
+Build a bidirectional system where:
+
+The app fetches training history from Garmin Connect (activities, metrics).
+
+The AI (via MCP) analyzes this data and generates new structured workouts (e.g. FTP build, VO₂max intervals, endurance rides).
+
+These structured workouts are automatically uploaded to the Garmin Connect Calendar through the Garmin API.
+
+🧩 Architecture
+1. Backend (MCP Server)
+
+Stack: Node.js + Express + TypeScript
+
+Responsibilities:
+
+Handle Garmin OAuth2 (user authentication + token refresh)
+
+Fetch user activity data (GET /api/activities)
+
+Fetch Garmin training plans or workouts
+
+Accept and upload new structured workouts (POST /api/workouts)
+
+Store both fetched and AI-generated workouts in SQLite
+
+Expose MCP resources:
+
+activities → history for analysis
+
+workouts → available or scheduled workouts
+
+plan → AI-generated weekly plans
+
+Example resource manifest (mcp.json):
+
+{
+  "resources": [
+    { "name": "activities", "endpoint": "/api/activities" },
+    { "name": "workouts", "endpoint": "/api/workouts" },
+    { "name": "plans", "endpoint": "/api/plans" }
+  ]
+}
+
+2. Garmin Structured Workouts
+
+Generated workouts should follow Garmin’s structured workout schema:
+
+{
+  "workoutName": "FTP Build – 5x8min @ 95%",
+  "sportType": "cycling",
+  "workoutSegments": [
+    { "durationType": "warmup", "duration": 600, "targetType": "power", "targetValue": 0.55 },
+    { "durationType": "interval", "duration": 480, "targetType": "power", "targetValue": 0.95 },
+    { "durationType": "recovery", "duration": 240, "targetType": "power", "targetValue": 0.5 }
+  ]
+}
+
+
+The backend should be able to push such a workout to Garmin Connect Calendar using the Workout API.
+
+3. MCP–AI Logic
+
+When ChatGPT (via MCP) requests data:
+
+It fetches the last 2–4 weeks of activity data.
+
+It can analyze FTP trends, TSS, training zones, HR, etc.
+
+It then generates a structured plan (e.g. 1-week or 4-week plan) with clear training objectives:
+
+goal: "Increase FTP"
+
+focus: "Threshold (95–105%)"
+
+sessions: [...]
+
+The AI should respond in JSON, ready to be directly POSTed to /api/workouts.
+
+4. Frontend (Next.js + Tailwind)
+
+Simple dashboard with:
+
+Chat view (AI conversation)
+
+Training summary (Garmin data)
+
+Button: “Generate next week’s plan” → triggers MCP → creates new workouts → sends them to Garmin
+
+5. Implementation Phases
+
+Implement mock Garmin API (local JSON for activities/workouts).
+
+Integrate real Garmin API with OAuth2 and upload endpoints.
+
+Implement MCP manifest and connect it with ChatGPT.
+
+Add AI logic for plan generation (e.g. using OpenAI API or MCP).
+
+Example AI prompt logic:
+
+Analyze last 14 cycling workouts.
+Identify the athlete’s FTP trend and aerobic capacity.
+Then design a 90-day plan focused on improving FTP and endurance.
+Output in Garmin structured workout JSON format.
+
+
+Deliverables:
+
+/backend: Express MCP server with Garmin integration
+
+/frontend: Next.js dashboard
+
+.env.example with GARMIN_CLIENT_ID, SECRET, OPENAI_API_KEY
+
+README.md setup guide
+
+Start by scaffolding backend and mock Garmin endpoints.

@@ -1,0 +1,189 @@
+{
+  "name": "ai-coach",
+  "version": "1.0.0",
+  "description": "AI Coach MCP Server - Intelligent training assistant with Garmin Connect integration",
+  "server": {
+    "host": "localhost",
+    "port": 3001,
+    "endpoints": {
+      "manifest": "/mcp/manifest",
+      "resources": "/mcp/resources",
+      "tools": "/mcp/tools"
+    }
+  },
+  "resources": [
+    {
+      "name": "activities",
+      "description": "User activity data from Garmin Connect",
+      "endpoint": "/api/activities",
+      "methods": ["GET"],
+      "parameters": {
+        "userId": {
+          "type": "string",
+          "required": true,
+          "description": "User ID for fetching activities"
+        },
+        "limit": {
+          "type": "number",
+          "required": false,
+          "description": "Number of activities to fetch (default: 50)"
+        },
+        "sportType": {
+          "type": "string",
+          "required": false,
+          "description": "Filter by sport type (cycling, running, swimming)"
+        }
+      }
+    },
+    {
+      "name": "workouts",
+      "description": "Structured workouts for Garmin Connect",
+      "endpoint": "/api/workouts",
+      "methods": ["GET", "POST"],
+      "parameters": {
+        "userId": {
+          "type": "string",
+          "required": true,
+          "description": "User ID for workout operations"
+        }
+      }
+    },
+    {
+      "name": "plans",
+      "description": "AI-generated training plans",
+      "endpoint": "/api/plans",
+      "methods": ["GET", "POST"],
+      "parameters": {
+        "userId": {
+          "type": "string",
+          "required": true,
+          "description": "User ID for plan operations"
+        }
+      }
+    }
+  ],
+  "tools": [
+    {
+      "name": "analyze_activities",
+      "description": "Analyze user activities to determine fitness level and training zones",
+      "endpoint": "/mcp/tools/analyze_activities",
+      "method": "POST",
+      "parameters": {
+        "userId": {
+          "type": "string",
+          "required": true,
+          "description": "User ID for analysis"
+        },
+        "period": {
+          "type": "string",
+          "required": false,
+          "description": "Analysis period (2w, 4w, 8w)",
+          "default": "2w"
+        }
+      }
+    },
+    {
+      "name": "generate_workout",
+      "description": "Generate a structured workout based on training goals",
+      "endpoint": "/mcp/tools/generate_workout",
+      "method": "POST",
+      "parameters": {
+        "userId": {
+          "type": "string",
+          "required": true,
+          "description": "User ID for workout generation"
+        },
+        "goal": {
+          "type": "string",
+          "required": true,
+          "description": "Training goal (ftp, vo2max, endurance)",
+          "enum": ["ftp", "vo2max", "endurance", "recovery"]
+        },
+        "focus": {
+          "type": "string",
+          "required": true,
+          "description": "Training focus description"
+        },
+        "duration": {
+          "type": "number",
+          "required": false,
+          "description": "Workout duration in minutes",
+          "default": 60
+        }
+      }
+    },
+    {
+      "name": "generate_plan",
+      "description": "Generate a complete training plan",
+      "endpoint": "/mcp/tools/generate_plan",
+      "method": "POST",
+      "parameters": {
+        "userId": {
+          "type": "string",
+          "required": true,
+          "description": "User ID for plan generation"
+        },
+        "goal": {
+          "type": "string",
+          "required": true,
+          "description": "Training goal"
+        },
+        "focus": {
+          "type": "string",
+          "required": true,
+          "description": "Training focus"
+        },
+        "duration": {
+          "type": "number",
+          "required": false,
+          "description": "Plan duration in weeks",
+          "default": 4
+        }
+      }
+    },
+    {
+      "name": "upload_workout",
+      "description": "Upload a workout to Garmin Connect",
+      "endpoint": "/mcp/tools/upload_workout",
+      "method": "POST",
+      "parameters": {
+        "userId": {
+          "type": "string",
+          "required": true,
+          "description": "User ID for upload"
+        },
+        "workoutId": {
+          "type": "string",
+          "required": true,
+          "description": "Workout ID to upload"
+        }
+      }
+    }
+  ],
+  "capabilities": {
+    "data_fetching": true,
+    "workout_generation": true,
+    "garmin_integration": true,
+    "ai_analysis": true,
+    "structured_workouts": true,
+    "training_plans": true
+  },
+  "garmin_integration": {
+    "oauth2": {
+      "authorization_url": "https://connect.garmin.com/oauthConfirm",
+      "token_url": "https://connectapi.garmin.com/oauth-service/oauth/access_token",
+      "scopes": ["read", "write"]
+    },
+    "endpoints": {
+      "activities": "https://apis.garmin.com/wellness-api/rest/activities",
+      "workouts": "https://apis.garmin.com/wellness-api/rest/workouts",
+      "user_info": "https://apis.garmin.com/wellness-api/rest/user/id"
+    }
+  },
+  "ai_features": {
+    "fitness_analysis": true,
+    "workout_generation": true,
+    "training_plan_creation": true,
+    "performance_recommendations": true
+  }
+}
