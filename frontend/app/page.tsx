@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { Activity, TrendingUp, Calendar, Zap, Heart, Clock, Target } from 'lucide-react'
 import { ActivityChart } from '@/components/ActivityChart'
+import { FitnessChart } from '@/components/FitnessChart'
+import { VolumeChart } from '@/components/VolumeChart'
 import { WorkoutList } from '@/components/WorkoutList'
 import { TrainingPlan } from '@/components/TrainingPlan'
 import { AIChat } from '@/components/AIChat'
@@ -127,13 +129,22 @@ export default function Dashboard() {
     )
   }
 
-  const cyclingActivities = activities.filter(a => a.sportType === 'cycling')
+  const cyclingActivities = activities.map(a => ({ ...a, sportType: 'cycling' }))
+  const chartActivities = cyclingActivities
   const totalDistance = activities.reduce((sum, a) => sum + (a.distance || 0), 0)
-  const totalDuration = activities.reduce((sum, a) => sum + a.duration, 0)
-  const avgPower = cyclingActivities.length > 0 
-    ? Math.round(cyclingActivities.reduce((sum, a) => sum + (a.averagePower || 0), 0) / cyclingActivities.length)
-    : 0
-  const totalTSS = cyclingActivities.reduce((sum, a) => sum + (a.tss || 0), 0)
+  const totalDuration = activities.reduce((sum, a) => sum + (a.duration || 0), 0)
+  const powerValues = cyclingActivities.map(a => a.averagePower || a.normalizedPower).filter(v => typeof v === 'number') as number[]
+  const avgPower = powerValues.length > 0 ? Math.round(powerValues.reduce((s, v) => s + v, 0) / powerValues.length) : null
+  const nowDate = new Date()
+  const sevenDaysAgo = new Date(nowDate.getTime() - 7 * 24 * 60 * 60 * 1000)
+  const last7d = chartActivities.filter(a => {
+    const d = new Date(a.startTime as any)
+    return !isNaN(d.getTime()) && d >= sevenDaysAgo && d <= nowDate
+  })
+  const totalTSS = Math.round(last7d.reduce((sum, a) => {
+    const tss = typeof a.tss === 'number' && !isNaN(a.tss) ? a.tss : (a.duration || 0) / 36
+    return sum + tss
+  }, 0))
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -163,7 +174,7 @@ export default function Dashboard() {
               <div className="metric-card">
                 <div className="flex items-center">
                   <TrendingUp className="h-5 w-5 text-primary-600" />
-                  <span className="ml-2 text-sm font-medium text-gray-600">FTP</span>
+                  <span className="ml-2 text-sm font-medium text-gray-600">Avg Power</span>
                 </div>
                 <p className="text-2xl font-bold text-gray-900">{avgPower}W</p>
               </div>
@@ -187,16 +198,29 @@ export default function Dashboard() {
               <div className="metric-card">
                 <div className="flex items-center">
                   <Target className="h-5 w-5 text-primary-600" />
-                  <span className="ml-2 text-sm font-medium text-gray-600">TSS</span>
+                  <span className="ml-2 text-sm font-medium text-gray-600">TSS (7d)</span>
                 </div>
                 <p className="text-2xl font-bold text-gray-900">{totalTSS}</p>
               </div>
             </div>
 
-            {/* Activity Chart */}
+            {/* Activity Chart */
+            }
             <div className="card">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Training Load (Last 14 Days)</h2>
-              <ActivityChart activities={cyclingActivities} />
+              <ActivityChart activities={chartActivities} />
+            </div>
+
+            {/* Fitness Chart */}
+            <div className="card">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Fitness (7-day Training Load)</h2>
+              <FitnessChart activities={chartActivities} days={28} />
+            </div>
+
+            {/* Volume Chart */}
+            <div className="card">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Volume (Distance & Duration - Last 28 Days)</h2>
+              <VolumeChart activities={chartActivities} days={28} />
             </div>
 
             {/* Workouts */}

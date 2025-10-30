@@ -23,9 +23,10 @@ export function ActivityChart({ activities }: ActivityChartProps) {
   // Process data for the last 14 days
   const last14Days = Array.from({ length: 14 }, (_, i) => {
     const date = subDays(new Date(), 13 - i)
+    const key = date.toLocaleDateString('en-CA') // YYYY-MM-DD in local time
     return {
       date: format(date, 'MMM dd'),
-      fullDate: date.toISOString().split('T')[0],
+      fullDate: key,
       tss: 0,
       power: 0,
       duration: 0
@@ -34,11 +35,15 @@ export function ActivityChart({ activities }: ActivityChartProps) {
 
   // Fill in actual data
   activities.forEach(activity => {
-    const activityDate = activity.startTime.split('T')[0]
+    const d = new Date(activity.startTime)
+    const activityDate = isNaN(d.getTime()) ? String(activity.startTime).split('T')[0] : d.toLocaleDateString('en-CA')
     const dayData = last14Days.find(day => day.fullDate === activityDate)
     
     if (dayData) {
-      dayData.tss += activity.tss || 0
+      const tss = typeof activity.tss === 'number' && !isNaN(activity.tss)
+        ? activity.tss
+        : (activity.duration || 0) / 36 // fallback proxy ~ duration in minutes / 10
+      dayData.tss += tss
       dayData.power += activity.averagePower || 0
       dayData.duration += activity.duration
     }
